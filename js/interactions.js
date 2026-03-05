@@ -5,7 +5,7 @@
  *
  * To point at a different environment, change HOST only:
  */
-const HOST = 'http://localhost:3000';
+const HOST = 'https://rental-movies-api.vercel.app';
 
 /* ════════════════════════════════════════════════════════════
    API LAYER
