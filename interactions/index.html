@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Recommendation System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/interactions.js"></script>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar-dark-custom">
+        <a href="#" class="navbar-brand-text">
+            <span class="brand-dot"></span>
+            Rental Movies
+        </a>
+        <ul class="navbar-nav-custom">
+            <li>
+                <a href="/" class="nav-link-custom" onclick="setActive(this)">
+                    <i class="bi bi-house-door"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="/customers" class="nav-link-custom" onclick="setActive(this)">
+                    <i class="bi bi-people"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            <li>
+                <a href="/movies" class="nav-link-custom" onclick="setActive(this)">
+                    <i class="bi bi-film"></i>
+                    <span>Movies</span>
+                </a>
+            </li>
+            <li>
+                <a href="/interactions" class="nav-link-custom active" onclick="setActive(this)">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Interactions</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="main">
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div>
+                <div class="page-title">Interactions</div>
+                <div class="page-subtitle">// BUY · RENT · TRACK</div>
+            </div>
+            <button class="btn-new" onclick="openNewModal()">
+                <i class="bi bi-plus-lg"></i>
+                New Interaction
+            </button>
+        </div>
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <div class="search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search by customer or movie ID…">
+            </div>
+            <select class="filter-select" id="typeFilter">
+                <option value="">All types</option>
+                <option value="buy">Buy</option>
+                <option value="rent">Rent</option>
+            </select>
+            <select class="filter-select" id="ratingFilter">
+                <option value="">Any rating</option>
+                <option value="5">★ 5</option>
+                <option value="4">★ 4+</option>
+                <option value="3">★ 3+</option>
+            </select>
+            <div class="total-badge">Total: <span id="totalCount">—</span></div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-wrap">
+            <table id="interactionsTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('type')" id="th-type">
+                            Type <i class="bi bi-chevron-expand sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable('customerId')" id="th-customerId">
+                            Customer <i class="bi bi-chevron-expand sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable('movieId')" id="th-movieId">
+                            Movie <i class="bi bi-chevron-expand sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable('date')" id="th-date">
+                            Date <i class="bi bi-chevron-expand sort-icon"></i>
+                        </th>
+                        <th onclick="sortTable('rating')" id="th-rating">
+                            Rating <i class="bi bi-chevron-expand sort-icon"></i>
+                        </th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="interactionsBody">
+                    <tr class="state-row">
+                        <td colspan="6">
+                            <div class="spinner-ring"></div><br>Loading interactions…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="pagination-wrap" id="paginationWrap">
+                <div class="pagination-info" id="paginationInfo"></div>
+                <div class="pagination-btns" id="paginationBtns"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         MODAL: VIEW DETAILS
+    ══════════════════════════════════════════ -->
+    <div class="modal fade" id="viewModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-arrow-left-right me-2" style="color:var(--accent-blue)"></i>
+                        Interaction Details
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-3" id="viewModalBody"></div>
+                <div class="modal-footer gap-2">
+                    <button class="btn-modal-ghost" data-bs-dismiss="modal">Close</button>
+                    <button class="btn-modal-primary" id="viewToEditBtn">
+                        <i class="bi bi-pencil me-1"></i> Edit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         MODAL: NEW INTERACTION (Buy / Rent)
+    ══════════════════════════════════════════ -->
+    <div class="modal fade" id="newModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newModalTitle">
+                        <i class="bi bi-plus-circle me-2" style="color:var(--accent-green)"></i>New Interaction
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+
+                    <!-- Type toggle -->
+                    <div class="mb-3">
+                        <label class="form-label-modal">Type</label>
+                        <div class="type-toggle" id="typeToggle">
+                            <label id="labelBuy" class="selected-buy" onclick="selectType('buy')">
+                                <i class="bi bi-bag-check me-1"></i> Buy
+                            </label>
+                            <label id="labelRent" onclick="selectType('rent')">
+                                <i class="bi bi-clock-history me-1"></i> Rent
+                            </label>
+                        </div>
+                        <input type="hidden" id="newType" value="buy">
+                    </div>
+
+                    <!-- Customer ID -->
+                    <div class="mb-3">
+                        <label class="form-label-modal">Customer ID</label>
+                        <select name="newCustomerId" id="newCustomerId" class="form-select-dark">
+                            <option value="">Select a customer</option>
+                        </select>
+                        <div id="customerResolved"></div>
+                    </div>
+
+                    <!-- Movie ID -->
+                    <div class="mb-3">
+                        <label class="form-label-modal">Movie ID</label>
+                        <select name="newMovieId" id="newMovieId" class="form-select-dark">
+                            <option value="">Select a movie</option>
+                        </select>
+                        <div id="movieResolved"></div>
+                    </div>
+
+                    <!-- Date + Rating -->
+                    <div class="form-row-2 mb-3">
+                        <div>
+                            <label class="form-label-modal">Date</label>
+                            <input type="date" class="form-control-dark" id="newDate">
+                        </div>
+                        <div>
+                            <label class="form-label-modal">Rating (1–5)</label>
+                            <div class="rating-slider-wrap" style="margin-top:6px;">
+                                <input type="range" id="newRating" min="1" max="5" step="1" value="3"
+                                    oninput="document.getElementById('newRatingVal').textContent = this.value">
+                                <span class="rating-preview" id="newRatingVal">3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="newFormError" style="color:var(--accent-red);font-family:'Space Mono',monospace;font-size:0.75rem;margin-top:8px;display:none;"></div>
+                </div>
+                <div class="modal-footer gap-2">
+                    <button class="btn-modal-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn-modal-primary" id="newSubmitBtn" onclick="submitNew()">
+                        <i class="bi bi-check-lg me-1"></i> <span id="newSubmitLabel">Record Buy</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         MODAL: EDIT INTERACTION
+    ══════════════════════════════════════════ -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-pencil me-2" style="color:var(--accent-yellow)"></i>Edit Interaction
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <input type="hidden" id="editInteractionId">
+
+                    <!-- Customer ID -->
+                    <div class="mb-3">
+                        <label class="form-label-modal">Customer</label>
+                        <select name="editCustomerId" id="editCustomerId" class="form-select-dark">
+                            <option value="">Select a customer</option>
+                        </select>
+                    </div>
+
+                    <!-- Movie ID -->
+                    <div class="mb-3">
+                        <label class="form-label-modal">Movie</label>
+                        <select name="editMovieId" id="editMovieId" class="form-select-dark">
+                            <option value="">Select a movie</option>
+                        </select>
+                    </div>
+
+                    <!-- Date + Rating -->
+                    <div class="form-row-2 mb-3">
+                        <div>
+                            <label class="form-label-modal">Date</label>
+                            <input type="date" class="form-control-dark" id="editDate">
+                        </div>
+                        <div>
+                            <label class="form-label-modal">Rating (1–5)</label>
+                            <div class="rating-slider-wrap" style="margin-top:6px;">
+                                <input type="range" id="editRating" min="1" max="5" step="1" value="3"
+                                    oninput="document.getElementById('editRatingVal').textContent = this.value">
+                                <span class="rating-preview" id="editRatingVal">3</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="editFormError" style="color:var(--accent-red);font-family:'Space Mono',monospace;font-size:0.75rem;margin-top:8px;display:none;"></div>
+                </div>
+                <div class="modal-footer gap-2">
+                    <button class="btn-modal-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn-modal-primary" id="editSubmitBtn" onclick="submitEdit()">
+                        <i class="bi bi-check-lg me-1"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         MODAL: CONFIRM DELETE
+    ══════════════════════════════════════════ -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-body px-4 pt-4 pb-2 text-center">
+                    <div class="confirm-icon"><i class="bi bi-trash3"></i></div>
+                    <div style="font-weight:800;font-size:1rem;margin-bottom:6px;">Remove Interaction?</div>
+                    <div style="font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--text-secondary);">
+                        ID: <span id="deleteInteractionId" style="color:var(--text-muted)"></span><br>
+                        <span style="color:var(--text-muted)">This action cannot be undone.</span>
+                    </div>
+                    <input type="hidden" id="deleteInteractionIdHidden">
+                </div>
+                <div class="modal-footer justify-content-center gap-2 pt-2">
+                    <button class="btn-modal-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn-modal-danger" onclick="confirmDelete()">
+                        <i class="bi bi-trash3 me-1"></i> Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast-container" id="toastContainer"></div>
+  </body>
+</html>
