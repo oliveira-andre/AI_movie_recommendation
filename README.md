@@ -5,4 +5,4 @@ This model is responsable for recommending movies based on users details and alr
 
 ## Demo
 
-![Demo](./dmeo.png)
+![Demo](./demo.png)
